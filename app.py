@@ -318,10 +318,10 @@ def render_setup_tab(svc):
     st.info(mode_help[selected_mode])
 
     if selected_mode in ("AI Only Mode", "Full CRM Mode") and not openai_key:
-        st.error(f"{selected_mode} requires OPENAI_API_KEY. Add it in Replit Secrets.")
+        st.error(f"{selected_mode} requires an OpenAI API key. Add OPENAI_API_KEY to your .env file and restart.")
         st.stop()
     if selected_mode == "Full CRM Mode" and not hubspot_token:
-        st.error("Full CRM Mode requires HUBSPOT_ACCESS_TOKEN. Add it in Replit Secrets.")
+        st.error("Full CRM Mode requires a HubSpot token. Add HUBSPOT_ACCESS_TOKEN to your .env file and restart.")
         st.stop()
 
     if st.button("Apply Mode", type="primary"):
@@ -330,30 +330,30 @@ def render_setup_tab(svc):
         st.rerun()
 
     st.divider()
-    st.subheader("How to Add Secrets in Replit")
-    st.markdown("""
-1. Open the **Secrets** panel in your Replit sidebar (lock icon).
-2. Add secrets by name:
+    st.subheader("How to configure API keys")
+    st.write("Copy .env.example to .env in the project folder and fill in the values you need:")
 
-| Secret Name | Required For |
-|---|---|
-| `OPENAI_API_KEY` | AI Only Mode, Full CRM Mode |
-| `HUBSPOT_ACCESS_TOKEN` | Full CRM Mode |
-| `SENDGRID_API_KEY` | Email Delivery tab (any mode) |
-| `SENDGRID_FROM_EMAIL` | Email Delivery tab — your verified sender email |
-| `SENDGRID_FROM_NAME` | Optional — sender display name (default: NovaMind) |
-| `OPENAI_MODEL` | Optional — defaults to gpt-4o-mini |
+    key_rows = [
+        ("OpenAI API Key", "OPENAI_API_KEY", "AI Only Mode, Full CRM Mode", "platform.openai.com → API keys"),
+        ("HubSpot Token", "HUBSPOT_ACCESS_TOKEN", "Full CRM Mode only", "HubSpot → Settings → Private Apps"),
+        ("SendGrid API Key", "SENDGRID_API_KEY", "Real email delivery (optional)", "app.sendgrid.com → Settings → API Keys"),
+        ("SendGrid From Email", "SENDGRID_FROM_EMAIL", "Real email delivery (optional)", "Your verified sender address"),
+        ("SendGrid From Name", "SENDGRID_FROM_NAME", "Optional", "Display name in sent emails (default: NovaMind)"),
+        ("OpenAI Model", "OPENAI_MODEL", "Optional", "Defaults to gpt-4o-mini if not set"),
+    ]
+    key_df = pd.DataFrame(key_rows, columns=["Key", "Variable Name", "Required For", "Where to get it"])
+    st.dataframe(key_df, use_container_width=True, hide_index=True)
+    st.caption("After editing .env, restart the app for changes to take effect.")
 
-3. Restart the app after adding secrets.
-""")
-    st.subheader("Mode Summary")
-    st.markdown("""
-| Mode | OpenAI | HubSpot | Email (SendGrid) |
-|---|---|---|---|
-| Mock Demo | Not needed | Not needed | Optional (will simulate) |
-| AI Only | Required | Not needed | Optional |
-| Full CRM | Required | Required | Optional |
-""")
+    st.divider()
+    st.subheader("Mode summary")
+    mode_rows = [
+        ("Mock Demo", "Not needed", "Not needed", "Not needed — simulates sending"),
+        ("AI Only", "Required", "Not needed", "Optional — simulates if not set"),
+        ("Full CRM", "Required", "Required", "Optional — simulates if not set"),
+    ]
+    mode_df = pd.DataFrame(mode_rows, columns=["Mode", "OpenAI", "HubSpot", "SendGrid Email"])
+    st.dataframe(mode_df, use_container_width=True, hide_index=True)
 
 
 # ─────────────────────────────────────────────
