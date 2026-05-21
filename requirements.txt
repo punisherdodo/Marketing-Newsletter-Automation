@@ -1,0 +1,10 @@
+streamlit
+openai
+python-dotenv
+requests
+pandas
+openai
+pandas
+python-dotenv
+requests
+streamlit

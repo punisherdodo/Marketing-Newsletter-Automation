@@ -1,0 +1,371 @@
+You are updating my existing NovaMind AI marketing pipeline local files into a full working Replit prototype.
+
+I will provide the existing project files. Your job is to modify the actual codebase, not just describe the app. Build a working Streamlit prototype that can run on Replit from the root folder.
+
+Main goal:
+Turn NovaMind into a bring-your-own-API-key marketing workflow app. I do not want to provide my own API keys. The app must work for any user when they add their own keys through Replit Secrets.
+
+Core product flow:
+1. User opens the app.
+2. App checks setup status.
+3. User chooses one of three modes:
+   - Mock Demo Mode: no keys required.
+   - AI Only Mode: requires OpenAI key.
+   - Full CRM Mode: requires OpenAI key and HubSpot token.
+4. User uploads contacts or uses sample contacts.
+5. App assigns personas.
+6. App generates persona-specific campaign content.
+7. User reviews generated content.
+8. If HubSpot is configured, user can dry-run and then sync contacts and campaign metadata to HubSpot.
+9. User can view saved campaign history, basic analytics, and optimization suggestions.
+
+Important:
+Do not hardcode any API keys.
+Do not ask me for API keys.
+Do not commit a real .env file.
+Do not expose secrets in the UI, logs, print statements, exports, or error messages.
+
+Required structure:
+Make the project run cleanly from the repository root.
+
+Target structure:
+/
+  app.py
+  requirements.txt
+  .replit
+  .env.example
+  README.md
+  services/
+    openai_service.py
+    hubspot_service.py
+    persona_service.py
+    storage_service.py
+    analytics_service.py
+    optimization_service.py
+  data/
+    exports/
+
+If the current files are nested inside another folder, move or restructure them so Replit can run app.py directly from the root.
+
+Required Replit setup:
+Create or update .replit with:
+
+run = "streamlit run app.py --server.address 0.0.0.0 --server.port 3000"
+
+Create requirements.txt with at least:
+streamlit
+openai
+python-dotenv
+requests
+pandas
+
+You may add other lightweight packages only if necessary.
+
+Create .env.example with:
+
+OPENAI_API_KEY=your_openai_key_here
+HUBSPOT_ACCESS_TOKEN=your_hubspot_private_app_token_here
+OPENAI_MODEL=gpt-5-mini
+
+Do not create a real .env file.
+
+API key and secrets handling:
+Use environment variables only.
+Read keys using os.getenv.
+In Replit, users will add these through Secrets:
+OPENAI_API_KEY
+HUBSPOT_ACCESS_TOKEN
+OPENAI_MODEL
+
+The app should show setup status like:
+OpenAI: configured or not configured
+HubSpot: configured or not configured
+Model: configured model name or default model
+
+Never show full API key values.
+Never print API keys.
+Never store API keys in SQLite or exported files.
+
+Operating modes:
+Add a mode selector in the UI.
+
+Mode 1: Mock Demo Mode
+- Works without any API keys.
+- Uses sample contacts.
+- Uses canned sample AI outputs.
+- Does not call OpenAI.
+- Does not call HubSpot.
+- This mode must always run successfully.
+
+Mode 2: AI Only Mode
+- Requires OPENAI_API_KEY.
+- Generates campaign content through OpenAI.
+- Does not require HubSpot.
+- Skips CRM sync.
+- Shows a clear message that HubSpot is not active.
+
+Mode 3: Full CRM Mode
+- Requires OPENAI_API_KEY and HUBSPOT_ACCESS_TOKEN.
+- Generates content through OpenAI.
+- Enables HubSpot dry-run and sync.
+- If HubSpot auth fails, show “HubSpot provider unavailable” and block HubSpot actions.
+- Do not fake a successful sync.
+
+OpenAI service requirements:
+Update OpenAIService so it:
+- Reads OPENAI_API_KEY from environment variables.
+- Reads OPENAI_MODEL from environment variables.
+- Defaults to gpt-5-mini if OPENAI_MODEL is missing.
+- Does not initialize in a way that crashes the whole app when the key is missing.
+- Has clean error handling for missing key, auth failure, rate limits, malformed responses, and provider failures.
+- Returns structured results to the app.
+
+Important:
+If OpenAI fails, show the error in simple user language.
+Do not crash the Streamlit app.
+
+JSON handling:
+If the app expects JSON from OpenAI, validate it.
+If JSON parsing fails:
+- Do not crash.
+- Return a fallback object with:
+  error
+  raw_output
+  suggested_next_step
+
+HubSpot service requirements:
+Make HubSpot optional.
+Update HubSpotService so it:
+- Reads HUBSPOT_ACCESS_TOKEN from environment variables.
+- Does not initialize in a way that crashes the whole app when the token is missing.
+- Has a health check or auth check method.
+- Handles failed auth gracefully.
+- Does not treat missing HubSpot as fatal unless user selects Full CRM Mode.
+
+Custom property handling:
+Before creating HubSpot custom properties:
+- Check whether the property exists.
+- If it exists, continue silently.
+- If it does not exist, create it.
+- If creation fails because of duplication or permissions, show a clear non-fatal error where possible.
+
+HubSpot sync:
+Add a dry-run review before any real HubSpot write.
+Dry-run should show:
+- Number of contacts detected.
+- Number of valid contacts.
+- Number of invalid contacts.
+- Contacts that appear ready to sync.
+- Any missing required fields.
+- Whether the app expects to create or update contacts if this can be checked safely.
+
+Only sync after the user clicks a clear “Sync to HubSpot” button.
+
+Contact upload:
+Add CSV upload.
+Required columns:
+email
+firstname
+lastname
+company
+job_title
+
+Also support sample contacts for demo mode.
+
+Validation:
+- Show clear errors for missing required columns.
+- Show invalid email rows.
+- Let user preview contacts before generating content or syncing.
+- Do not sync invalid contacts.
+
+Persona assignment:
+Keep or improve the current persona assignment logic.
+Personas should be readable and useful for B2B marketing.
+Examples:
+- Operations Manager
+- Agency Founder
+- Creative Lead
+- Growth Marketer
+- Product Marketing Lead
+- General Business Buyer
+
+The user should be able to see assigned personas before campaign generation.
+
+Campaign generation:
+Add a campaign builder UI with fields:
+- Campaign name
+- Product or company description
+- Target audience
+- Campaign goal
+- Tone
+- Channel selection:
+  - Email
+  - LinkedIn
+  - Blog
+  - Newsletter
+- Optional CTA
+- Optional constraints
+
+Generated output should include:
+- Subject line or hook when relevant
+- Main content
+- CTA
+- Persona rationale
+- Suggested A/B test idea
+
+For Mock Demo Mode, return realistic sample outputs without calling OpenAI.
+
+Storage:
+Use SQLite for local prototype storage.
+Store:
+- Campaign metadata
+- Contacts
+- Assigned personas
+- Generated content
+- Sync status
+- Timestamp
+- Mode used
+
+Do not store API keys.
+
+Exports:
+Save campaign exports as JSON in data/exports.
+Make sure exported files do not contain API keys.
+Add a download button in Streamlit for generated content or campaign results.
+
+Analytics:
+Add a simple analytics tab.
+At minimum show:
+- Number of contacts
+- Persona distribution
+- Campaigns generated
+- Content generated by channel
+- Sync status summary if HubSpot is used
+
+Optimization:
+Add an optimization tab.
+It can use either sample logic or existing logic.
+It should provide:
+- Top performing persona if performance data exists.
+- Suggested next test.
+- Suggested content angle.
+- Suggested channel adjustment.
+
+If no performance data exists, show a useful placeholder and explain what data would be needed.
+
+Reset controls:
+Add controls in Settings or Admin:
+- Clear session state.
+- Clear local SQLite database.
+- Clear exported JSON files.
+
+Ask for confirmation before destructive reset actions.
+
+UI requirements:
+Use Streamlit.
+Keep the UI clean and professional.
+Suggested tabs:
+1. Setup
+2. Contacts
+3. Campaign Builder
+4. Generated Content
+5. HubSpot Sync
+6. Analytics
+7. Optimization
+8. Settings
+
+The Setup tab should clearly explain:
+- Which mode is available.
+- Which secrets are configured.
+- How to add secrets in Replit.
+- That the repo does not include any API keys.
+
+Security rules:
+- Never hardcode secrets.
+- Never print secrets.
+- Never show full API keys in the UI.
+- Never commit .env.
+- Only read secrets from environment variables.
+- Treat user-uploaded CSVs as untrusted input.
+- Validate inputs before using them.
+- If live provider auth fails, show data unavailable or provider unavailable.
+- Do not fake successful live API calls.
+- Do not use frontend-only secret handling.
+- Do not put secrets in query params, local files, SQLite, or exports.
+
+Error handling:
+The app should not crash from:
+- Missing OpenAI key.
+- Missing HubSpot token.
+- Invalid CSV.
+- Empty contact list.
+- Failed OpenAI response.
+- Malformed JSON from OpenAI.
+- HubSpot auth failure.
+- HubSpot property already existing.
+- SQLite database not existing yet.
+- Empty exports folder.
+
+README update:
+Update README.md with:
+- What the app does.
+- How to run locally.
+- How to run on Replit.
+- How to add Replit Secrets.
+- Required and optional environment variables.
+- Explanation of the three modes.
+- Security note that no API keys are included.
+- Troubleshooting section.
+
+README should include:
+
+Required for AI Only Mode:
+OPENAI_API_KEY
+
+Required for Full CRM Mode:
+OPENAI_API_KEY
+HUBSPOT_ACCESS_TOKEN
+
+Optional:
+OPENAI_MODEL
+
+Validation checklist:
+After editing the code, verify these manually:
+
+1. App starts from root with:
+streamlit run app.py --server.address 0.0.0.0 --server.port 3000
+
+2. Mock Demo Mode works with no secrets.
+
+3. AI Only Mode is blocked with a clear message if OPENAI_API_KEY is missing.
+
+4. AI Only Mode works when OPENAI_API_KEY is present.
+
+5. Full CRM Mode is blocked with a clear message if HUBSPOT_ACCESS_TOKEN is missing.
+
+6. Full CRM Mode does not fake success if HubSpot authentication fails.
+
+7. CSV upload works with valid required columns.
+
+8. Invalid CSVs show clear errors instead of crashing.
+
+9. OpenAI malformed output does not crash the app.
+
+10. HubSpot property duplication does not crash the app.
+
+11. Exports work and do not include secrets.
+
+12. Reset controls work.
+
+Do not just build UI placeholders.
+The app must actually run end to end in Mock Demo Mode without keys.
+The app must actually call OpenAI in AI Only Mode when a valid key is present.
+The app must actually attempt HubSpot sync only in Full CRM Mode when a valid HubSpot token is present.
+
+Before finishing:
+- Run a quick syntax check.
+- Fix import errors.
+- Remove dead paths caused by old nested folders.
+- Make sure all service imports work from app.py.
+- Make sure data/ and data/exports/ are created automatically if missing.
+- Make sure the final app is not dependent on my local machine paths.
