@@ -68,6 +68,13 @@ class StorageService:
             saved_at TEXT,
             FOREIGN KEY (campaign_id) REFERENCES campaigns(id)
         )""")
+        c.execute("""
+        CREATE TABLE IF NOT EXISTS custom_keywords (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            persona TEXT NOT NULL,
+            keyword TEXT NOT NULL,
+            UNIQUE(persona, keyword)
+        )""")
         self.conn.commit()
 
     def insert_campaign(self, topic: str, data: dict, mode: str = "mock",
@@ -215,6 +222,26 @@ class StorageService:
 
     def list_exports(self) -> list:
         return sorted(self.exports_dir.glob("*.json"), key=lambda f: f.stat().st_mtime, reverse=True)
+
+    def load_custom_keywords(self) -> dict:
+        c = self.conn.cursor()
+        c.execute("SELECT persona, keyword FROM custom_keywords ORDER BY persona, keyword")
+        rows = c.fetchall()
+        result = {}
+        for persona, keyword in rows:
+            result.setdefault(persona, []).append(keyword)
+        return result
+
+    def save_custom_keyword(self, persona: str, keyword: str):
+        c = self.conn.cursor()
+        c.execute("INSERT OR IGNORE INTO custom_keywords (persona, keyword) VALUES (?, ?)",
+                  (persona, keyword.strip().lower()))
+        self.conn.commit()
+
+    def delete_custom_keywords(self, persona: str):
+        c = self.conn.cursor()
+        c.execute("DELETE FROM custom_keywords WHERE persona = ?", (persona,))
+        self.conn.commit()
 
     def get_analytics_summary(self) -> dict:
         c = self.conn.cursor()

@@ -249,11 +249,19 @@ def init_session():
         "email_auth": None,
         "metrics_rows": [],
         "email_send_results": None,
-        "custom_keywords": {p: [] for p in PERSONAS},
+        "custom_keywords_loaded": False,
     }
     for k, v in defaults.items():
         if k not in st.session_state:
             st.session_state[k] = v
+
+    if not st.session_state.get("custom_keywords_loaded"):
+        svc = get_services()
+        saved = svc["storage"].load_custom_keywords()
+        base = {p: [] for p in PERSONAS}
+        base.update(saved)
+        st.session_state.custom_keywords = base
+        st.session_state.custom_keywords_loaded = True
 
 
 def is_valid_email(email: str) -> bool:
@@ -1116,6 +1124,7 @@ def render_settings_tab(svc):
     from services.persona_service import PersonaService as PS
     default_kw = PS.DEFAULT_KEYWORDS
 
+    storage_svc_kw = svc["storage"]
     for persona in PERSONAS:
         with st.expander(persona, expanded=False):
             st.caption("Built-in keywords: " + ", ".join(default_kw.get(persona, [])))
@@ -1127,17 +1136,19 @@ def render_settings_tab(svc):
             )
             col_add, col_clear = st.columns([1, 1])
             with col_add:
-                if st.button(f"Add", key=f"kw_add_{persona}") and new_keyword.strip():
+                if st.button("Add", key=f"kw_add_{persona}") and new_keyword.strip():
                     kw = new_keyword.strip().lower()
                     if kw not in custom:
+                        storage_svc_kw.save_custom_keyword(persona, kw)
                         custom.append(kw)
                         st.session_state.custom_keywords[persona] = custom
                         st.success(f"Added '{kw}' to {persona}.")
                         st.rerun()
             if custom:
-                st.caption("Custom keywords added: " + ", ".join(custom))
+                st.caption("Custom keywords: " + ", ".join(custom))
                 with col_clear:
-                    if st.button(f"Clear custom", key=f"kw_clear_{persona}"):
+                    if st.button("Clear custom", key=f"kw_clear_{persona}"):
+                        storage_svc_kw.delete_custom_keywords(persona)
                         st.session_state.custom_keywords[persona] = []
                         st.rerun()
 
