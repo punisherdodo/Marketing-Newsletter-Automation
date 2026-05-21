@@ -712,7 +712,7 @@ def render_content_tab(svc):
         if exports:
             st.subheader(f"Saved Exports ({len(exports)} files)")
             for f in exports[:10]:
-                st.text(f.name)
+                st.write(f.name)
 
 
 # ─────────────────────────────────────────────
@@ -789,8 +789,8 @@ def render_email_delivery_tab(svc):
 
     if dry["missing_list"]:
         with st.expander("Contacts with missing content"):
-            for e in dry["missing_list"]:
-                st.text(e)
+            for email_addr in dry["missing_list"]:
+                st.write(email_addr)
 
     if dry["will_send"] == 0:
         st.warning("No contacts are ready to send. Check that content exists for the right personas.")
@@ -1118,7 +1118,7 @@ def render_settings_tab(svc):
 
     for persona in PERSONAS:
         with st.expander(persona, expanded=False):
-            st.markdown("**Built-in keywords:** " + ", ".join(f"`{k}`" for k in default_kw.get(persona, [])))
+            st.caption("Built-in keywords: " + ", ".join(default_kw.get(persona, [])))
             custom = st.session_state.custom_keywords.get(persona, [])
             new_keyword = st.text_input(
                 f"Add keyword for {persona}",
@@ -1135,7 +1135,7 @@ def render_settings_tab(svc):
                         st.success(f"Added '{kw}' to {persona}.")
                         st.rerun()
             if custom:
-                st.markdown("**Custom keywords:** " + ", ".join(f"`{k}`" for k in custom))
+                st.caption("Custom keywords added: " + ", ".join(custom))
                 with col_clear:
                     if st.button(f"Clear custom", key=f"kw_clear_{persona}"):
                         st.session_state.custom_keywords[persona] = []
