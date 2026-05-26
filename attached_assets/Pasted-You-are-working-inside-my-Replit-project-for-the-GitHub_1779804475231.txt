@@ -1,0 +1,335 @@
+You are working inside my Replit project for the GitHub repo:
+
+https://github.com/punisherdodo/Marketing-Newsletter-Automation
+
+Goal:
+Turn this into a dependable, forkable, public-ready Streamlit web app that anyone can run after cloning or forking the repo. The app must work in Replit and locally. Users should be able to run it with no API keys in demo mode, and optionally add their own OpenAI, SendGrid, and HubSpot API keys for full functionality.
+
+This is not just a code cleanup task. Make the repo usable by someone who has never seen the project before.
+
+Core product:
+A Streamlit web app for AI-powered marketing newsletter automation. It should let users:
+1. Upload or use sample contacts.
+2. Assign or infer customer personas.
+3. Generate newsletter content with AI when OpenAI key is available.
+4. Use mock/demo content when no OpenAI key is available.
+5. Preview newsletters before sending.
+6. Send test emails or campaigns through SendGrid when configured.
+7. Sync contacts or campaign activity to HubSpot when configured.
+8. Track campaign history and basic analytics in SQLite.
+9. Export campaign results.
+10. Run safely without exposing API keys.
+
+Main requirement:
+The project must be dependable for public users. A person should be able to fork the repo, open it in Replit, click Run, and use demo mode immediately. They should also be able to clone it locally, install requirements, add their own API keys, and run it.
+
+First, audit the existing repo:
+1. Check every Python file for syntax errors.
+2. Fix any files where imports or statements are collapsed into invalid one-line code.
+3. Run a Python compile check across all app and service files.
+4. Check whether app.py actually starts in Streamlit.
+5. Check whether services are imported correctly.
+6. Check whether missing API keys are handled gracefully.
+7. Check whether the README matches the actual repo.
+8. Check whether requirements.txt is complete.
+9. Check whether .env.example is complete.
+10. Remove or ignore unnecessary Node, PNPM, or frontend config unless it is actually required.
+
+Do not delete meaningful features. Refactor safely.
+
+Required architecture:
+Keep or create this structure:
+
+app.py
+services/
+  openai_service.py
+  email_service.py
+  hubspot_service.py
+  storage_service.py
+  analytics_service.py
+  persona_service.py
+data/
+  sample_contacts.csv
+  .gitkeep
+README.md
+requirements.txt
+.env.example
+.gitignore
+.replit
+
+The app should be Streamlit-first.
+
+Required app modes:
+1. Mock Demo Mode
+   - Works with zero API keys.
+   - Uses sample contacts.
+   - Uses mock AI-generated newsletter content.
+   - Does not send real emails.
+   - Does not call HubSpot.
+   - Stores campaign data locally in SQLite.
+   - Clearly tells the user that this is demo mode.
+
+2. AI Only Mode
+   - Requires OPENAI_API_KEY.
+   - Generates real newsletter copy using OpenAI.
+   - Does not require SendGrid or HubSpot.
+   - Allows preview and export.
+
+3. Full CRM Mode
+   - Uses OpenAI if available.
+   - Uses SendGrid if SENDGRID_API_KEY and sender fields are available.
+   - Uses HubSpot if HUBSPOT_ACCESS_TOKEN is available.
+   - If one integration is missing, the rest of the app should still work.
+   - The app should never crash because one API key is missing.
+
+Environment variables:
+Create a complete .env.example with:
+
+OPENAI_API_KEY=
+OPENAI_MODEL=gpt-4o-mini
+
+SENDGRID_API_KEY=
+SENDGRID_FROM_EMAIL=
+SENDGRID_FROM_NAME=
+
+HUBSPOT_ACCESS_TOKEN=
+
+APP_MODE=demo
+DATABASE_PATH=data/marketing_newsletter.db
+
+API key rules:
+1. Never hardcode API keys.
+2. Never commit secrets.
+3. Load secrets from Replit Secrets first when available.
+4. Load from .env for local development.
+5. If keys are missing, show a clear UI warning and fall back to demo-safe behavior.
+6. Do not fake successful email sends or HubSpot syncs. If unavailable, mark the result as skipped or demo.
+
+Dependencies:
+Create a complete requirements.txt. Include only what is actually needed. Likely dependencies include:
+
+streamlit
+pandas
+python-dotenv
+openai
+requests
+sendgrid
+
+Add any others only if the code imports them.
+
+Data:
+Create data/sample_contacts.csv with realistic sample rows and these columns:
+
+email
+firstname
+lastname
+company
+job_title
+persona
+
+Include 8 to 12 sample contacts. Use fake emails like alex@example.com.
+
+SQLite:
+storage_service.py should:
+1. Create the database automatically if it does not exist.
+2. Create tables for campaigns, contacts, generated_content, email_events, and integration_logs if useful.
+3. Store campaign metadata, content, selected persona, timestamp, mode, send status, and exportable results.
+4. Never fail if the database file is missing.
+5. Keep the database inside data/ by default.
+
+OpenAI service:
+openai_service.py should:
+1. Initialize only if OPENAI_API_KEY exists.
+2. Provide a clear function for generating newsletter content.
+3. Accept campaign goal, audience/persona, tone, offer, and optional context.
+4. Return structured fields:
+   - subject_line
+   - preview_text
+   - headline
+   - body
+   - call_to_action
+5. Provide a mock generation fallback with realistic output.
+6. Handle API errors gracefully and return a user-facing error message instead of crashing.
+
+Email service:
+email_service.py should:
+1. Initialize only if SendGrid config exists.
+2. Support test email sending.
+3. Support campaign send simulation in demo mode.
+4. Never send emails in demo mode.
+5. Validate recipient emails.
+6. Return clear status objects:
+   - sent
+   - skipped
+   - failed
+   - demo_simulated
+
+HubSpot service:
+hubspot_service.py should:
+1. Initialize only if HUBSPOT_ACCESS_TOKEN exists.
+2. Support optional contact sync.
+3. Handle missing or invalid token gracefully.
+4. Log sync results.
+5. Never block the rest of the app if HubSpot fails.
+
+Persona service:
+persona_service.py should:
+1. Use existing persona column if available.
+2. Infer persona from job title and company when missing.
+3. Use simple readable rules.
+4. Allow users to manually edit persona in the UI.
+5. Include personas like:
+   - Marketing Leader
+   - Growth Manager
+   - Founder
+   - Operations Manager
+   - Sales Leader
+   - General Business User
+
+Analytics service:
+analytics_service.py should:
+1. Summarize campaigns from SQLite.
+2. Show number of contacts, generated campaigns, demo sends, real sends, failed sends, and skipped integrations.
+3. Create simple Streamlit tables and charts.
+4. Avoid fake performance metrics unless clearly labeled as sample/demo data.
+
+Streamlit UI:
+app.py should be clean and usable. Build the UI with these sections or tabs:
+
+1. Setup Status
+   - Shows whether OpenAI, SendGrid, HubSpot, and SQLite are configured.
+   - Shows current mode.
+   - Shows clear next steps.
+
+2. Contacts
+   - Upload CSV.
+   - Load sample contacts.
+   - Preview contacts.
+   - Edit persona if practical.
+   - Validate required columns.
+
+3. Campaign Builder
+   - Campaign name.
+   - Campaign goal.
+   - Target persona.
+   - Tone.
+   - Offer or CTA.
+   - Additional context.
+   - Generate newsletter button.
+
+4. Preview
+   - Show subject line, preview text, headline, body, CTA.
+   - Allow copy/download/export.
+   - Show whether content is AI-generated or mock-generated.
+
+5. Send or Simulate
+   - In demo mode, simulate only.
+   - With SendGrid configured, allow test send first.
+   - Require confirmation before real send.
+   - Show send results clearly.
+
+6. HubSpot Sync
+   - Optional.
+   - Only enabled when token exists.
+   - Show skipped state when unavailable.
+   - Log results.
+
+7. Analytics
+   - Show saved campaigns.
+   - Show basic counts and tables.
+   - Allow export to CSV.
+
+8. Help
+   - Explain how to use demo mode.
+   - Explain how to add API keys in Replit Secrets.
+   - Explain how to run locally.
+
+Error handling:
+The app should not crash for normal user mistakes. Handle:
+1. Missing API keys.
+2. Empty uploaded CSV.
+3. Missing columns.
+4. Bad email format.
+5. OpenAI API error.
+6. SendGrid error.
+7. HubSpot error.
+8. Missing database.
+9. Empty campaign fields.
+10. No contacts selected.
+
+Replit:
+Fix .replit so the Run button launches the Streamlit app. Use a simple command like:
+
+streamlit run app.py --server.address=0.0.0.0 --server.port=3000
+
+Do not require users to manually type commands in the Shell.
+
+Local setup:
+Make sure this works locally:
+
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+streamlit run app.py
+
+README:
+Rewrite README.md so it is accurate, clean, and public-ready.
+
+It must include:
+1. What the app does.
+2. Features.
+3. Demo mode explanation.
+4. Screenshots placeholder section if no screenshots exist.
+5. Replit setup instructions.
+6. Local setup instructions.
+7. Environment variables.
+8. CSV upload format.
+9. API key setup.
+10. Safety notes.
+11. Project structure.
+12. Troubleshooting.
+13. Roadmap.
+
+Use the actual repo name:
+Marketing-Newsletter-Automation
+
+Do not reference wrong clone URLs or old project names unless presented as branding inside the app.
+
+Testing:
+Before finishing, run these checks:
+
+1. python -m py_compile app.py services/*.py
+2. pip install -r requirements.txt
+3. streamlit run app.py check, or at least verify imports work.
+4. Test app behavior with no API keys.
+5. Test sample contacts load.
+6. Test mock content generation.
+7. Test SQLite database creation.
+8. Test CSV export.
+9. Confirm missing integrations show skipped, not failed.
+10. Confirm no secrets are hardcoded.
+
+Add a simple smoke test file if useful:
+tests/smoke_test.py
+
+It should import all services and confirm basic fallback behavior works.
+
+Important product rules:
+1. The app must be usable by anyone who forks it.
+2. Demo mode must work immediately.
+3. Full mode must use the user’s own API keys only.
+4. No hardcoded credentials.
+5. No fake claims of real sending or CRM syncing.
+6. Keep the code simple and readable.
+7. Prefer dependable over fancy.
+8. Make clear comments where users may customize the app.
+9. Do not over-engineer with authentication or cloud deployment yet.
+10. Do not convert this into a complex React app. Keep it Streamlit.
+
+When finished:
+1. Summarize every file changed.
+2. Tell me exactly how to run it in Replit.
+3. Tell me exactly how to run it locally.
+4. Tell me what still needs manual testing.
+5. Tell me whether the repo is now forkable and demo-ready.

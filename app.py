@@ -5,6 +5,9 @@ import re
 from pathlib import Path
 from datetime import datetime
 
+from dotenv import load_dotenv
+load_dotenv()  # load .env for local development (no-op in Replit / when vars are already set)
+
 import streamlit as st
 import pandas as pd
 
