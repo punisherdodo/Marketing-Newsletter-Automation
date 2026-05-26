@@ -1,0 +1,101 @@
+The GitHub version is still not forkable. Fix the repo now.
+
+Critical issue:
+Many Python files are collapsed into invalid one-line code. app.py starts with invalid syntax like:
+
+import os import sys import json import re from pathlib import Path ...
+
+This must be fixed across the entire repo.
+
+Do the following in order:
+
+1. Open every Python file in the project.
+2. Reformat each file into valid Python with proper imports, functions, indentation, and line breaks.
+3. Specifically fix:
+   - app.py
+   - services/openai_service.py
+   - services/email_service.py
+   - services/storage_service.py
+   - services/persona_service.py
+   - services/analytics_service.py
+   - services/hubspot_service.py
+   - services/optimization_service.py
+4. Run:
+   python -m py_compile app.py services/*.py
+5. Do not stop until the compile check passes.
+
+Then fix public setup:
+
+6. Replace requirements.txt with the actual dependencies needed by the app:
+   streamlit
+   pandas
+   python-dotenv
+   openai
+   requests
+   sendgrid
+
+   Add any other dependency only if the code actually imports it.
+
+7. Replace .env.example with:
+
+OPENAI_API_KEY=
+OPENAI_MODEL=gpt-4o-mini
+
+SENDGRID_API_KEY=
+SENDGRID_FROM_EMAIL=
+SENDGRID_FROM_NAME=NovaMind
+
+HUBSPOT_ACCESS_TOKEN=
+
+APP_MODE=demo
+DATABASE_PATH=data/marketing_newsletter.db
+
+8. Replace .replit with a working Streamlit run command:
+
+run = "streamlit run app.py --server.address=0.0.0.0 --server.port=3000"
+
+9. Fix README clone instructions to use the real repo:
+
+git clone https://github.com/punisherdodo/Marketing-Newsletter-Automation.git
+cd Marketing-Newsletter-Automation
+
+10. Make sure Mock Demo Mode works with zero API keys.
+11. Make sure missing OpenAI, SendGrid, and HubSpot keys show warnings but do not crash the app.
+12. Make sure sample contacts load without API keys.
+13. Make sure SQLite creates itself automatically inside data/.
+14. Make sure the app can generate mock content and save a mock campaign with no keys.
+15. Make sure the user can export campaign data.
+
+Also clean the repo:
+
+16. If Node, PNPM, TypeScript, artifacts, or attached_assets are not required for the Streamlit app, remove them or clearly isolate them so they do not confuse public users.
+17. This should be a Python Streamlit-first repo.
+18. Do not add auth, cloud databases, or complex deployment.
+19. Prioritize dependable and forkable over fancy.
+
+Final validation:
+Run these commands and show me the output:
+
+python -m py_compile app.py services/*.py
+pip install -r requirements.txt
+python -c "import streamlit, pandas, openai, requests; print('imports ok')"
+
+Then start the app with:
+
+streamlit run app.py --server.address=0.0.0.0 --server.port=3000
+
+After that, manually verify:
+- Replit Run works
+- Mock Demo Mode works with no secrets
+- Contacts load
+- Campaign content generates in mock mode
+- SQLite database is created
+- Export works
+- Missing integrations are marked as skipped, not successful
+
+When finished, summarize:
+1. Files fixed
+2. Tests passed
+3. How to run in Replit
+4. How to run locally
+5. What still needs manual testing
