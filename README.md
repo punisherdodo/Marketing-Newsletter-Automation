@@ -198,6 +198,26 @@ Run on a different port: `streamlit run app.py --server.port 8502`
 
 ---
 
+## Verified Setup
+
+This repo has been tested in a clean virtual environment with zero API keys.
+
+Verified behavior:
+- The app launches locally with `streamlit run app.py`
+- Mock Demo Mode works without OpenAI, SendGrid, or HubSpot keys
+- Sample contacts load successfully
+- Personas assign correctly
+- Mock content generation works
+- SQLite creates the local database automatically
+- JSON export works
+- Missing integrations show warnings instead of crashing
+
+Default local URL: http://localhost:8501
+
+Replit users can fork the repo, open the project, and run the Streamlit app directly.
+
+---
+
 ## Roadmap
 
 - [ ] Scheduled campaign sends
